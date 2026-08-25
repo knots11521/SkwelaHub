@@ -27,7 +27,7 @@ class Index extends Component
             })
             ->latest()
             ->get()
-            ->filter(fn(LearningEnvironment $environment): bool => $user->can('view', $environment));
+            ->filter(fn (LearningEnvironment $environment): bool => $user->can('view', $environment));
 
         return view('livewire.learning-environments.index', [
             'environments' => $environments,

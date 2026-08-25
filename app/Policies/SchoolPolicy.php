@@ -14,7 +14,7 @@ class SchoolPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasRole(RoleSeeder::SuperAdmin);
     }
 
     /**
@@ -23,7 +23,7 @@ class SchoolPolicy
     public function view(User $user, School $school): bool
     {
         return $user->hasRole(RoleSeeder::SuperAdmin)
-            || $user->hasApprovedSchoolMembership($school);
+            || $user->school_id === $school->id;
     }
 
     /**
@@ -31,7 +31,7 @@ class SchoolPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(RoleSeeder::SuperAdmin);
+        return false;
     }
 
     /**
@@ -39,7 +39,7 @@ class SchoolPolicy
      */
     public function update(User $user, School $school): bool
     {
-        return $user->hasRole(RoleSeeder::SuperAdmin);
+        return $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin);
     }
 
     /**
@@ -47,12 +47,11 @@ class SchoolPolicy
      */
     public function delete(User $user, School $school): bool
     {
-        return $user->hasRole(RoleSeeder::SuperAdmin);
+        return false;
     }
 
     public function manageMemberships(User $user, School $school): bool
     {
-        return $user->hasRole(RoleSeeder::SuperAdmin)
-            || $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin);
+        return $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin);
     }
 }

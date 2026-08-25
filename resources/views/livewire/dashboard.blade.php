@@ -85,10 +85,12 @@
                         {{ __('Manage boundaries, settings, and provisioning for participating schools.') }}
                     </flux:text>
                 </div>
-                <flux:button :href="route('schools.index')" wire:navigate variant="primary" icon="building-office"
-                    class="shadow-sm">
-                    {{ __('Manage schools') }}
-                </flux:button>
+                <flux:badge color="teal" icon="building-office">{{ __('School-owned workspaces') }}</flux:badge>
+            </flux:card>
+
+            <flux:card class="overflow-x-auto p-0">
+                <div class="flex items-center gap-2 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800"><flux:icon.user-group class="size-5 text-teal-600 dark:text-teal-400" /><flux:heading size="lg">{{ __('School Admin supervision') }}</flux:heading></div>
+                <table class="min-w-full text-left text-sm"><thead class="bg-teal-50/60 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"><tr><th class="px-5 py-3">{{ __('School Admin') }}</th><th class="px-5 py-3">{{ __('School') }}</th></tr></thead><tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">@forelse($schoolAdministrators as $administrator)<tr wire:key="platform-admin-{{ $administrator->id }}"><td class="px-5 py-4"><div class="font-medium">{{ $administrator->name }}</div><div class="text-zinc-500">{{ $administrator->email }}</div></td><td class="px-5 py-4">{{ $administrator->school?->name ?? __('No school assigned') }}</td></tr>@empty<tr><td colspan="2" class="px-5 py-8 text-center text-zinc-500">{{ __('No School Admin accounts are registered yet.') }}</td></tr>@endforelse</tbody></table>
             </flux:card>
         </section>
     @endif
@@ -200,6 +202,9 @@
                     </div>
                 </flux:card>
             </div>
+            @if ($user->school)
+                <flux:card class="flex items-center justify-between gap-4 border border-teal-100 dark:border-teal-900"><div><flux:heading>{{ __('Classroom and subject management') }}</flux:heading><flux:text>{{ __('Create your subjects, classrooms, and enroll students.') }}</flux:text></div><flux:button :href="route('schools.academic', $user->school)" wire:navigate variant="primary" icon="academic-cap">{{ __('Manage academics') }}</flux:button></flux:card>
+            @endif
         </section>
     @endif
 
@@ -244,6 +249,34 @@
                         {{ $studentStats['points'] }}
                     </div>
                 </flux:card>
+            </div>
+        </section>
+    @endif
+
+    @if ($isTeacher || $isStudent)
+        <section class="space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
+                <flux:heading size="lg" class="font-bold tracking-tight">{{ __('My Classrooms') }}</flux:heading>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @forelse ($environments as $environment)
+                    <flux:card wire:key="dashboard-environment-{{ $environment->id }}" class="flex flex-col gap-4 border border-zinc-200/80 dark:border-zinc-800">
+                        <div>
+                            <flux:heading>{{ $environment->name }}{{ $environment->section ? ' · '.$environment->section : '' }}</flux:heading>
+                            <flux:text>{{ $environment->subject->name }} · {{ $environment->school->name }}</flux:text>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <flux:button :href="route('learning-environments.materials', $environment)" wire:navigate size="sm" icon="book-open">{{ __('Materials') }}</flux:button>
+                            <flux:button :href="route('learning-environments.assignments', $environment)" wire:navigate size="sm" icon="clipboard-document-list">{{ __('Assignments') }}</flux:button>
+                            <flux:button :href="route('learning-environments.assessments', $environment)" wire:navigate size="sm" icon="academic-cap">{{ __('Assessments') }}</flux:button>
+                        </div>
+                    </flux:card>
+                @empty
+                    <flux:callout icon="information-circle" variant="secondary" class="sm:col-span-2 lg:col-span-3">
+                        {{ __('No classrooms are assigned to you yet.') }}
+                    </flux:callout>
+                @endforelse
             </div>
         </section>
     @endif

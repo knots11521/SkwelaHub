@@ -13,7 +13,7 @@
     <flux:card>
         <form wire:submit="addMember" class="flex flex-col gap-3 sm:flex-row">
             <flux:select wire:model="schoolMembershipId" class="grow">
-                <flux:select.option value="">{{ __('Select approved teacher or student') }}</flux:select.option>
+                <flux:select.option value="">{{ __('Select an approved student') }}</flux:select.option>
                 @foreach($available as $member)
                     <flux:select.option :value="$member->id">{{ $member->user->name }} · {{ $member->requested_role->value }}</flux:select.option>
                 @endforeach

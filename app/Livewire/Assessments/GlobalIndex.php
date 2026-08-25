@@ -28,7 +28,7 @@ class GlobalIndex extends Component
             ->whereIn('learning_environment_id', $environmentIds)
             ->with(['author:id,name', 'learningEnvironment:id,name'])
             ->withCount(['attempts', 'questions'])
-            ->when(! $isTeacher, fn($query) => $query->where('status', 'published'))
+            ->when(! $isTeacher, fn ($query) => $query->where('status', 'published'))
             ->latest()
             ->paginate(10);
 

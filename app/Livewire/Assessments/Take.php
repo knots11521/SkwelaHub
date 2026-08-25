@@ -17,6 +17,7 @@ use Livewire\Component;
 class Take extends Component
 {
     public Assessment $assessment;
+
     public array $answers = [];
 
     public function mount(Assessment $assessment): void
@@ -35,8 +36,8 @@ class Take extends Component
 
         foreach ($this->assessment->questions as $question) {
             $this->validate([
-                "answers.{$question->id}" => ['required', 'integer', 'min:0', 'max:' . (count($question->options) - 1)]
-            ], [], ["answers.{$question->id}" => "question selection"]);
+                "answers.{$question->id}" => ['required', 'integer', 'min:0', 'max:'.(count($question->options) - 1)],
+            ], [], ["answers.{$question->id}" => 'question selection']);
         }
 
         $correctAnswers = 0;

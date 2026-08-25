@@ -16,12 +16,14 @@ use Livewire\Component;
 class Index extends Component
 {
     public LearningEnvironment $learningEnvironment;
+
     public string $title = '';
+
     public string $instructions = '';
 
     public function mount(LearningEnvironment $learningEnvironment): void
     {
-        $this->authorize('view', $learningEnvironment);
+        $this->authorize('viewLearningContent', $learningEnvironment);
         $this->learningEnvironment = $learningEnvironment;
     }
 
@@ -54,6 +56,7 @@ class Index extends Component
 
         if ($assessment->questions_count === 0) {
             Flux::toast(variant: 'danger', text: 'An assessment needs at least one question before publishing.');
+
             return;
         }
 
@@ -90,7 +93,7 @@ class Index extends Component
             ->with(['author:id,name'])
             ->withCount(['questions', 'attempts'])
             ->latest()
-            ->when(! $this->canManage(), fn($query) => $query->published())
+            ->when(! $this->canManage(), fn ($query) => $query->published())
             ->get();
 
         return view('livewire.assessments.index', [

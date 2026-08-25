@@ -92,7 +92,7 @@
 
                 @auth
 
-                    <flux:button href="{{ route(auth()->user()->role . '.dashboard') }}" variant="primary"
+                    <flux:button href="{{ route(auth()->user()->role . 'dashboard') }}" variant="primary"
                         class="bg-teal-700 hover:bg-teal-800 text-white font-bold">
                         Dashboard
                     </flux:button>
@@ -172,7 +172,7 @@
 
                             @auth
 
-                                <flux:button href="{{ route(auth()->user()->role . '.dashboard') }}" variant="primary"
+                                <flux:button href="{{ route(auth()->user()->role . 'dashboard') }}" variant="primary"
                                     size="base"
                                     class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-8 py-3 text-base">
                                     Go to Dashboard
@@ -934,7 +934,7 @@
                             @auth
 
                                 <li>
-                                    <a href="{{ route(auth()->user()->role . '.dashboard') }}"
+                                    <a href="{{ route(auth()->user()->role . 'dashboard') }}"
                                         class="transition-colors hover:text-teal-400">
                                         User Dashboard
                                     </a>

@@ -49,25 +49,12 @@
                 {{ __('Dashboard') }}
             </flux:sidebar.item>
 
-            {{-- Schools --}}
-            <flux:sidebar.item icon="building-office-2" :href="route('schools.index')"
-                :current="request()->routeIs('schools.*')" wire:navigate>
-                @if ($user->hasRole(\Database\Seeders\RoleSeeder::SuperAdmin))
-                    {{ __('Manage schools') }}
-                @else
-                    {{ __('School access') }}
-                @endif
-            </flux:sidebar.item>
+            @if ($user->school_id && $user->hasRole(\App\SchoolRole::SchoolAdmin->value))
+                <flux:sidebar.item icon="users" :href="route('schools.members', $user->school_id)" :current="request()->routeIs('schools.members')" wire:navigate>{{ __('School users') }}</flux:sidebar.item>
+            @endif
 
-            {{-- Membership Requests --}}
-            @if (
-                $user->hasRole(\Database\Seeders\RoleSeeder::SuperAdmin) ||
-                    $user->hasRole(\App\SchoolRole::SchoolAdmin->value) ||
-                    $user->hasRole(\App\SchoolRole::Teacher->value))
-                <flux:sidebar.item icon="clipboard-document-check" :href="route('membership-requests.index')"
-                    :current="request()->routeIs('membership-requests.*')" wire:navigate>
-                    {{ __('Membership requests') }}
-                </flux:sidebar.item>
+            @if ($user->school_id && ($user->hasRole(\App\SchoolRole::SchoolAdmin->value) || $user->hasRole(\App\SchoolRole::Teacher->value)))
+                <flux:sidebar.item icon="academic-cap" :href="route('schools.academic', $user->school_id)" :current="request()->routeIs('schools.academic')" wire:navigate>{{ $user->hasRole(\App\SchoolRole::Teacher->value) ? __('My subjects and classrooms') : __('Academic supervision') }}</flux:sidebar.item>
             @endif
 
             {{-- Learning Hub (Dropdown for Teachers & Students) --}}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Assessments\Index;
+use App\Livewire\Assessments\Take;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\LearningEnvironment;
@@ -32,22 +33,24 @@ beforeEach(function (): void {
 });
 
 test('an enrolled student completes a published assessment and receives a result', function (): void {
-    $this->actingAs($this->teacher);
-    Livewire::test(Index::class, ['learningEnvironment' => $this->environment])
-        ->set('title', 'Science check-in')
-        ->set('questionPrompt', 'Which planet is known as the Red Planet?')
-        ->set('questionOptions', "Earth\nMars")
-        ->set('correctOption', 2)
-        ->call('create');
-
-    $assessment = Assessment::query()->with('questions')->firstOrFail();
-    Livewire::test(Index::class, ['learningEnvironment' => $this->environment])
-        ->call('publish', $assessment->id);
+    $assessment = Assessment::query()->create([
+        'learning_environment_id' => $this->environment->id,
+        'created_by' => $this->teacher->id,
+        'title' => 'Science check-in',
+        'status' => 'draft',
+    ]);
+    $assessment->questions()->create([
+        'prompt' => 'Which planet is known as the Red Planet?',
+        'options' => ['Earth', 'Mars'],
+        'correct_option' => 1,
+    ]);
+    $assessment->update(['status' => 'published', 'published_at' => now()]);
+    $assessment->load('questions');
 
     $this->actingAs($this->student);
-    Livewire::test(Index::class, ['learningEnvironment' => $this->environment])
+    Livewire::test(Take::class, ['assessment' => $assessment])
         ->set("answers.{$assessment->questions->first()->id}", 1)
-        ->call('submit', $assessment->id);
+        ->call('submit');
 
     $attempt = AssessmentAttempt::query()->where('assessment_id', $assessment->id)->firstOrFail();
     expect($attempt->student_id)->toBe($this->student->id)

@@ -6,6 +6,7 @@ use App\Models\LearningEnvironment;
 use App\Models\School;
 use App\Models\User;
 use App\SchoolRole;
+use Database\Seeders\RoleSeeder;
 
 class LearningEnvironmentPolicy
 {
@@ -22,7 +23,9 @@ class LearningEnvironmentPolicy
      */
     public function view(User $user, LearningEnvironment $learningEnvironment): bool
     {
-        return $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher)
+        return $user->hasRole(RoleSeeder::SuperAdmin)
+            || ($user->school_id === $learningEnvironment->school_id && $user->role === SchoolRole::SchoolAdmin)
+            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher)
             || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Student);
     }
 
@@ -31,7 +34,7 @@ class LearningEnvironmentPolicy
      */
     public function create(User $user, School $school): bool
     {
-        return $user->can('manageMemberships', $school);
+        return $user->school_id === $school->id && $user->role === SchoolRole::Teacher;
     }
 
     /**
@@ -39,7 +42,18 @@ class LearningEnvironmentPolicy
      */
     public function update(User $user, LearningEnvironment $learningEnvironment): bool
     {
-        return $user->can('manageMemberships', $learningEnvironment->school);
+        return $user->id === $learningEnvironment->created_by && $user->role === SchoolRole::Teacher;
+    }
+
+    public function manageMembers(User $user, LearningEnvironment $learningEnvironment): bool
+    {
+        return $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher);
+    }
+
+    public function viewLearningContent(User $user, LearningEnvironment $learningEnvironment): bool
+    {
+        return $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher)
+            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Student);
     }
 
     /**
@@ -47,7 +61,7 @@ class LearningEnvironmentPolicy
      */
     public function delete(User $user, LearningEnvironment $learningEnvironment): bool
     {
-        return $user->can('manageMemberships', $learningEnvironment->school);
+        return $this->update($user, $learningEnvironment);
     }
 
     /**

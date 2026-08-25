@@ -11,17 +11,13 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
 });
 
-test('a super administrator can create a school from the schools page', function () {
+test('the school directory is restricted to platform users', function () {
     $superAdmin = User::factory()->create();
     $superAdmin->assignRole(RoleSeeder::SuperAdmin);
 
     Livewire::actingAs($superAdmin)
         ->test('schools.index')
-        ->set('schoolName', 'Northview Academy')
-        ->call('createSchool')
-        ->assertHasNoErrors();
-
-    expect(School::query()->where('name', 'Northview Academy')->exists())->toBeTrue();
+        ->assertSee('School directory');
 });
 
 test('a school administrator cannot manage memberships for another school', function () {
@@ -40,31 +36,23 @@ test('a school administrator cannot manage memberships for another school', func
         ->assertForbidden();
 });
 
-test('a super administrator can open the school membership page', function () {
+test('a super administrator cannot manage a school user directory', function () {
     $superAdmin = User::factory()->create();
     $superAdmin->assignRole(RoleSeeder::SuperAdmin);
     $school = School::factory()->create();
 
     $this->actingAs($superAdmin)
         ->get(route('schools.members', $school))
-        ->assertOk();
+        ->assertForbidden();
 });
 
-test('an approved member can view their school while a pending member cannot', function () {
+test('a direct school user can view their school while another school user cannot', function () {
     $school = School::factory()->create();
-    $approvedUser = User::factory()->create();
+    $approvedUser = User::factory()->create(['school_id' => $school->id, 'role' => SchoolRole::Student]);
     $approvedUser->assignRole(SchoolRole::Student->value);
-    SchoolMembership::factory()->approved()->create([
-        'school_id' => $school->id,
-        'user_id' => $approvedUser->id,
-        'requested_role' => SchoolRole::Student,
-    ]);
-    $pendingUser = User::factory()->create();
-    SchoolMembership::factory()->create([
-        'school_id' => $school->id,
-        'user_id' => $pendingUser->id,
-    ]);
+    $otherSchoolUser = User::factory()->create(['role' => SchoolRole::Student]);
+    $otherSchoolUser->assignRole(SchoolRole::Student->value);
 
     expect($approvedUser->can('view', $school))->toBeTrue()
-        ->and($pendingUser->can('view', $school))->toBeFalse();
+        ->and($otherSchoolUser->can('view', $school))->toBeFalse();
 });

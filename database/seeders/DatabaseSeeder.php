@@ -49,6 +49,11 @@ class DatabaseSeeder extends Seeder
                 'role' => RoleSeeder::Teacher,
             ],
             [
+                'name' => 'North Campus Administrator',
+                'email' => 'north.admin@skwelahub.test',
+                'role' => RoleSeeder::SchoolAdmin,
+            ],
+            [
                 'name' => 'North Campus Student',
                 'email' => 'north.student@skwelahub.test',
                 'role' => RoleSeeder::Student,
@@ -66,18 +71,6 @@ class DatabaseSeeder extends Seeder
             );
 
             $user->syncRoles([$attributes['role']]);
-        }
-
-        foreach ([
-            ['School Admin Applicant', 'school.admin.applicant@skwelahub.test'],
-            ['Teacher Applicant', 'teacher.applicant@skwelahub.test'],
-            ['Student Applicant', 'student.applicant@skwelahub.test'],
-            ['Parent Applicant', 'parent.applicant@skwelahub.test'],
-        ] as [$name, $email]) {
-            User::query()->firstOrCreate(
-                ['email' => $email],
-                ['name' => $name, 'password' => 'password', 'email_verified_at' => now()],
-            );
         }
 
         $this->call([

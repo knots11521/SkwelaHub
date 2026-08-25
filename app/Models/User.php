@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,7 +32,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['school_id', 'name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -48,6 +49,7 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => SchoolRole::class,
         ];
     }
 
@@ -69,6 +71,14 @@ class User extends Authenticatable implements PasskeyUser
     public function schoolMemberships(): HasMany
     {
         return $this->hasMany(SchoolMembership::class);
+    }
+
+    /**
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
     }
 
     /**
@@ -97,6 +107,10 @@ class User extends Authenticatable implements PasskeyUser
 
     public function hasApprovedSchoolMembership(School $school): bool
     {
+        if ($this->school_id === $school->id) {
+            return true;
+        }
+
         return $this->schoolMemberships()
             ->approved()
             ->whereBelongsTo($school)
@@ -105,16 +119,29 @@ class User extends Authenticatable implements PasskeyUser
 
     public function hasApprovedSchoolRole(School $school, SchoolRole $role): bool
     {
-        return $this->hasRole($role->value)
-            && $this->schoolMemberships()
-                ->approved()
-                ->whereBelongsTo($school)
-                ->where('requested_role', $role->value)
-                ->exists();
+        if ($this->school_id === $school->id && $this->role === $role && $this->hasRole($role->value)) {
+            return true;
+        }
+
+        return $this->hasRole($role->value) && $this->schoolMemberships()
+            ->approved()
+            ->whereBelongsTo($school)
+            ->where('requested_role', $role->value)
+            ->exists();
     }
 
     public function hasLearningEnvironmentRole(LearningEnvironment $environment, SchoolRole $role): bool
     {
-        return $this->schoolMemberships()->approved()->whereBelongsTo($environment->school)->where('requested_role', $role->value)->whereHas('learningEnvironmentMemberships', fn ($query) => $query->whereBelongsTo($environment))->exists();
+        if (($this->school_id !== null && $this->school_id !== $environment->school_id)
+            || ($this->role !== null && $this->role !== $role)) {
+            return false;
+        }
+
+        return $this->schoolMemberships()
+            ->approved()
+            ->where('school_id', $environment->school_id)
+            ->where('requested_role', $role->value)
+            ->whereHas('learningEnvironmentMemberships', fn ($query) => $query->whereBelongsTo($environment))
+            ->exists();
     }
 }

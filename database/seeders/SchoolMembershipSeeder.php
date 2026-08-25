@@ -17,39 +17,22 @@ class SchoolMembershipSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            ['school.admin@skwelahub.test', SchoolRole::SchoolAdmin, null],
+            ['school.admin@skwelahub.test', SchoolRole::SchoolAdmin, 'skwelahub-demonstration-school'],
             ['teacher@skwelahub.test', SchoolRole::Teacher, 'skwelahub-demonstration-school'],
             ['student@skwelahub.test', SchoolRole::Student, 'skwelahub-demonstration-school'],
             ['parent@skwelahub.test', SchoolRole::ParentGuardian, 'skwelahub-demonstration-school'],
             ['north.teacher@skwelahub.test', SchoolRole::Teacher, 'skwelahub-north-campus'],
             ['north.student@skwelahub.test', SchoolRole::Student, 'skwelahub-north-campus'],
+            ['north.admin@skwelahub.test', SchoolRole::SchoolAdmin, 'skwelahub-north-campus'],
         ] as [$email, $role, $schoolSlug]) {
             $user = User::query()->where('email', $email)->firstOrFail();
 
-            foreach (School::query()->get() as $school) {
-                if ($schoolSlug !== null && $school->slug !== $schoolSlug) {
-                    continue;
-                }
-
-                SchoolMembership::query()->updateOrCreate(
-                    ['school_id' => $school->id, 'user_id' => $user->id],
-                    ['requested_role' => $role, 'status' => SchoolMembershipStatus::Approved, 'reviewed_at' => now()],
-                );
-            }
-        }
-
-        foreach ([
-            ['skwelahub-demonstration-school', 'school.admin.applicant@skwelahub.test', SchoolRole::SchoolAdmin],
-            ['skwelahub-demonstration-school', 'teacher.applicant@skwelahub.test', SchoolRole::Teacher],
-            ['skwelahub-demonstration-school', 'student.applicant@skwelahub.test', SchoolRole::Student],
-            ['skwelahub-demonstration-school', 'parent.applicant@skwelahub.test', SchoolRole::ParentGuardian],
-        ] as [$schoolSlug, $email, $role]) {
             $school = School::query()->where('slug', $schoolSlug)->firstOrFail();
-            $user = User::query()->where('email', $email)->firstOrFail();
+            $user->update(['school_id' => $school->id, 'role' => $role]);
 
-            SchoolMembership::query()->firstOrCreate(
+            SchoolMembership::query()->updateOrCreate(
                 ['school_id' => $school->id, 'user_id' => $user->id],
-                ['requested_role' => $role, 'status' => SchoolMembershipStatus::Pending],
+                ['requested_role' => $role, 'status' => SchoolMembershipStatus::Approved, 'reviewed_at' => now()],
             );
         }
     }

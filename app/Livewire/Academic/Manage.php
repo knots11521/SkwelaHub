@@ -3,9 +3,13 @@
 namespace App\Livewire\Academic;
 
 use App\Models\LearningEnvironment;
+use App\Models\LearningEnvironmentMembership;
 use App\Models\School;
+use App\Models\SchoolMembership;
 use App\Models\Subject;
 use App\Models\User;
+use App\SchoolMembershipStatus;
+use App\SchoolRole;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -29,7 +33,7 @@ class Manage extends Component
 
     public function mount(School $school): void
     {
-        $this->authorize('manageMemberships', $school);
+        $this->authorize('view', $school);
         $this->school = $school;
     }
 
@@ -37,7 +41,11 @@ class Manage extends Component
     {
         $this->authorize('create', [Subject::class, $this->school]);
         $data = $this->validate(['subjectName' => ['required', 'string', 'max:255'], 'subjectCode' => ['required', 'string', 'max:50', Rule::unique('subjects', 'code')->where('school_id', $this->school->id)]]);
-        $this->school->subjects()->create(['name' => $data['subjectName'], 'code' => $data['subjectCode']]);
+        $this->school->subjects()->create([
+            'created_by' => $this->user()->id,
+            'name' => $data['subjectName'],
+            'code' => $data['subjectCode'],
+        ]);
         $this->reset('subjectName', 'subjectCode');
         Flux::toast(variant: 'success', text: 'Subject created.');
     }
@@ -46,7 +54,28 @@ class Manage extends Component
     {
         $this->authorize('create', [LearningEnvironment::class, $this->school]);
         $data = $this->validate(['environmentName' => ['required', 'string', 'max:255'], 'section' => ['nullable', 'string', 'max:100'], 'subjectId' => ['required', Rule::exists('subjects', 'id')->where('school_id', $this->school->id)]]);
-        LearningEnvironment::query()->create(['school_id' => $this->school->id, 'subject_id' => $data['subjectId'], 'name' => $data['environmentName'], 'section' => $data['section'] ?: null]);
+        $subject = $this->school->subjects()->findOrFail($data['subjectId']);
+        $this->authorize('update', $subject);
+
+        $environment = LearningEnvironment::query()->create([
+            'school_id' => $this->school->id,
+            'subject_id' => $subject->id,
+            'created_by' => $this->user()->id,
+            'name' => $data['environmentName'],
+            'section' => $data['section'] ?: null,
+        ]);
+
+        $membership = SchoolMembership::query()
+            ->whereBelongsTo($this->user())
+            ->whereBelongsTo($this->school)
+            ->where('status', SchoolMembershipStatus::Approved)
+            ->where('requested_role', SchoolRole::Teacher->value)
+            ->firstOrFail();
+
+        LearningEnvironmentMembership::query()->firstOrCreate([
+            'school_membership_id' => $membership->id,
+            'learning_environment_id' => $environment->id,
+        ]);
         $this->reset('environmentName', 'section', 'subjectId');
         Flux::toast(variant: 'success', text: 'Learning environment created.');
     }
@@ -69,11 +98,27 @@ class Manage extends Component
 
     private function user(): User
     {
-        return Auth::user();
+        /** @var User $user */
+        $user = Auth::user();
+
+        return $user;
+    }
+
+    public function canManageAcademic(): bool
+    {
+        return $this->user()->can('create', [Subject::class, $this->school]);
     }
 
     public function render()
     {
-        return view('livewire.academic.manage', ['subjects' => $this->school->subjects()->with('learningEnvironments:id,subject_id,name,section')->orderBy('name')->get()]);
+        $subjects = $this->school->subjects()
+            ->with('learningEnvironments:id,subject_id,created_by,name,section')
+            ->orderBy('name');
+
+        if ($this->user()->role === SchoolRole::Teacher) {
+            $subjects->where('created_by', $this->user()->id);
+        }
+
+        return view('livewire.academic.manage', ['subjects' => $subjects->get()]);
     }
 }

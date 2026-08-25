@@ -12,8 +12,11 @@ use Livewire\Component;
 class Edit extends Component
 {
     public Assessment $assessment;
+
     public string $title = '';
+
     public string $instructions = '';
+
     public array $questions = [];
 
     public function mount(Assessment $assessment): void

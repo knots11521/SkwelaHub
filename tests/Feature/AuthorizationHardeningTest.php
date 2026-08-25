@@ -44,23 +44,23 @@ test('non-platform roles cannot access foreign-school resources through direct U
     'parent guardian' => 'parent@skwelahub.test',
 ]);
 
-test('school administrators manage structure without gaining automatic classroom-content access', function (): void {
+test('school administrators can supervise their academic structure without gaining classroom-content access', function (): void {
     $schoolAdmin = User::query()->where('email', 'school.admin@skwelahub.test')->firstOrFail();
     $demoEnvironment = LearningEnvironment::query()->where('name', 'Grade 7')->where('section', 'A')->firstOrFail();
 
     expect($schoolAdmin->can('manageMemberships', $demoEnvironment->school))->toBeTrue()
-        ->and($schoolAdmin->can('view', $demoEnvironment))->toBeFalse();
+        ->and($schoolAdmin->can('view', $demoEnvironment))->toBeTrue();
 
     $this->actingAs($schoolAdmin)
         ->get(route('learning-environments.materials', $demoEnvironment))
         ->assertForbidden();
 });
 
-test('the super administrator retains platform management but not private classroom content access', function (): void {
+test('the super administrator can supervise school structure without managing school users or classroom content', function (): void {
     $superAdmin = User::query()->where('email', 'super.admin@skwelahub.test')->firstOrFail();
 
-    $this->actingAs($superAdmin)->get(route('schools.members', $this->foreignSchool))->assertOk();
-    $this->actingAs($superAdmin)->get(route('schools.academic', $this->foreignSchool))->assertOk();
+    $this->actingAs($superAdmin)->get(route('schools.members', $this->foreignSchool))->assertForbidden();
+    $this->actingAs($superAdmin)->get(route('schools.academic', $this->foreignSchool))->assertSuccessful();
     $this->actingAs($superAdmin)->get(route('learning-environments.materials', $this->foreignEnvironment))->assertForbidden();
 });
 

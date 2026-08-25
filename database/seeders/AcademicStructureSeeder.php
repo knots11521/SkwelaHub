@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\LearningEnvironment;
 use App\Models\School;
 use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class AcademicStructureSeeder extends Seeder
@@ -15,22 +16,31 @@ class AcademicStructureSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            ['skwelahub-demonstration-school', 'MATH-7', 'Mathematics 7', 'Grade 7', 'A'],
-            ['skwelahub-north-campus', 'SCI-8', 'Science 8', 'Grade 8', 'B'],
-        ] as [$schoolSlug, $code, $subjectName, $environmentName, $section]) {
+            ['skwelahub-demonstration-school', 'teacher@skwelahub.test', 'MATH-7', 'Mathematics 7', 'Grade 7', 'A'],
+            ['skwelahub-north-campus', 'north.teacher@skwelahub.test', 'SCI-8', 'Science 8', 'Grade 8', 'B'],
+        ] as [$schoolSlug, $teacherEmail, $code, $subjectName, $environmentName, $section]) {
             $school = School::query()->where('slug', $schoolSlug)->firstOrFail();
+            $teacher = User::query()->where('email', $teacherEmail)->firstOrFail();
             $subject = Subject::query()->firstOrCreate(
                 ['school_id' => $school->id, 'code' => $code],
-                ['name' => $subjectName, 'description' => 'A demonstration subject for interface testing.'],
+                ['created_by' => $teacher->id, 'name' => $subjectName, 'description' => 'A demonstration subject for interface testing.'],
             );
 
-            LearningEnvironment::query()->firstOrCreate(
+            $subject->update(['created_by' => $teacher->id]);
+
+            $learningEnvironment = LearningEnvironment::query()->firstOrCreate(
                 ['school_id' => $school->id, 'name' => $environmentName, 'section' => $section],
                 [
                     'subject_id' => $subject->id,
+                    'created_by' => $teacher->id,
                     'description' => 'A demonstration learning environment for interface testing.',
                 ],
             );
+
+            $learningEnvironment->update([
+                'subject_id' => $subject->id,
+                'created_by' => $teacher->id,
+            ]);
         }
     }
 }

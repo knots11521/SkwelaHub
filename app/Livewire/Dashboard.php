@@ -40,12 +40,19 @@ class Dashboard extends Component
             })
             ->pluck('id');
 
-        $adminSchools = $schools->filter(fn(School $school): bool => $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin));
+        $environments = LearningEnvironment::query()
+            ->whereKey($environmentIds)
+            ->with(['school:id,name', 'subject:id,name,code'])
+            ->orderBy('name')
+            ->get();
+
+        $adminSchools = $schools->filter(fn (School $school): bool => $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin));
         $adminSchoolIds = $adminSchools->modelKeys();
 
         return view('livewire.dashboard', [
             'user' => $user,
             'schools' => $schools,
+            'environments' => $environments,
             'adminSchools' => $adminSchools,
             'isSuperAdmin' => $isSuperAdmin,
             'isSchoolAdmin' => $isSchoolAdmin,
@@ -56,6 +63,9 @@ class Dashboard extends Component
                 'schools' => $isSuperAdmin ? $schools->count() : 0,
                 'users' => $isSuperAdmin ? User::query()->count() : 0,
             ],
+            'schoolAdministrators' => $isSuperAdmin
+                ? User::query()->where('role', SchoolRole::SchoolAdmin)->with('school:id,name')->orderBy('name')->get(['id', 'school_id', 'name', 'email'])
+                : collect(),
             'schoolStats' => [
                 'members' => $isSchoolAdmin ? SchoolMembership::query()->approved()->whereIn('school_id', $adminSchoolIds)->count() : 0,
                 'subjects' => $isSchoolAdmin ? Subject::query()->whereIn('school_id', $adminSchoolIds)->count() : 0,
@@ -68,8 +78,8 @@ class Dashboard extends Component
                 'pendingAttempts' => $isTeacher ? AssessmentAttempt::query()->whereIn('learning_environment_id', $environmentIds)->where('evaluation_status', 'pending')->count() : 0,
             ],
             'studentStats' => [
-                'assignments' => $isStudent ? Assignment::query()->published()->whereIn('learning_environment_id', $environmentIds)->whereDoesntHave('submissions', fn($query) => $query->whereBelongsTo($user, 'student'))->count() : 0,
-                'assessments' => $isStudent ? Assessment::query()->published()->whereIn('learning_environment_id', $environmentIds)->whereDoesntHave('attempts', fn($query) => $query->whereBelongsTo($user, 'student'))->count() : 0,
+                'assignments' => $isStudent ? Assignment::query()->published()->whereIn('learning_environment_id', $environmentIds)->whereDoesntHave('submissions', fn ($query) => $query->whereBelongsTo($user, 'student'))->count() : 0,
+                'assessments' => $isStudent ? Assessment::query()->published()->whereIn('learning_environment_id', $environmentIds)->whereDoesntHave('attempts', fn ($query) => $query->whereBelongsTo($user, 'student'))->count() : 0,
                 'evaluatedWork' => $isStudent ? $user->performanceRecords()->count() : 0,
                 'points' => $isStudent ? $user->gamificationEvents()->sum('points') : 0,
             ],

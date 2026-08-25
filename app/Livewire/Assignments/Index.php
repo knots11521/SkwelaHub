@@ -30,7 +30,7 @@ class Index extends Component
 
     public function mount(LearningEnvironment $learningEnvironment): void
     {
-        $this->authorize('view', $learningEnvironment);
+        $this->authorize('viewLearningContent', $learningEnvironment);
         $this->learningEnvironment = $learningEnvironment;
     }
 

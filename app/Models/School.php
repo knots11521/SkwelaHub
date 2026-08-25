@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'slug', 'description', 'is_active', 'created_by'])]
+#[Fillable(['name', 'slug', 'description', 'address', 'region', 'is_active', 'created_by'])]
 class School extends Model
 {
     /** @use HasFactory<SchoolFactory> */
@@ -31,6 +31,14 @@ class School extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(SchoolMembership::class);
+    }
+
+    /**
+     * @return HasMany<User, $this>
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 
     /** @return HasMany<Subject, $this> */

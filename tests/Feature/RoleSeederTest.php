@@ -39,6 +39,6 @@ test('the development seed provides one user for each V1 role', function () {
         ->and(User::query()->where('email', 'student@skwelahub.test')->firstOrFail()->hasRole(RoleSeeder::Student))->toBeTrue()
         ->and(User::query()->where('email', 'parent@skwelahub.test')->firstOrFail()->hasRole(RoleSeeder::ParentGuardian))->toBeTrue()
         ->and(SchoolMembership::query()->approved()->count())->toBe(7)
-        ->and(SchoolMembership::query()->where('status', SchoolMembershipStatus::Pending)->count())->toBe(4)
+        ->and(SchoolMembership::query()->where('status', SchoolMembershipStatus::Pending)->count())->toBe(0)
         ->and(SchoolMembership::query()->approved()->firstOrFail()->status)->toBe(SchoolMembershipStatus::Approved);
 });

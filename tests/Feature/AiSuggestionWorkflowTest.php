@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
-    config()->set('services.openai.key', 'test-key');
+    config()->set('services.openrouter.key', 'test-key');
     $school = School::factory()->create();
     $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Mathematics', 'code' => 'MATH-7']);
     $this->environment = LearningEnvironment::query()->create(['school_id' => $school->id, 'subject_id' => $subject->id, 'name' => 'Grade 7', 'section' => 'A']);
@@ -39,8 +39,8 @@ beforeEach(function (): void {
 
 test('teacher AI output remains private until it is reviewed, approved, and explicitly published', function (): void {
     Http::fake([
-        'api.openai.com/v1/responses' => Http::response([
-            'output' => [['content' => [['text' => "Title: Integer reflection\nAsk learners to explain how they solved -4 + 7."]]]],
+        'openrouter.ai/api/v1/chat/completions' => Http::response([
+            'choices' => [['message' => ['content' => "Title: Integer reflection\nAsk learners to explain how they solved -4 + 7."]]],
         ]),
     ]);
 
@@ -72,7 +72,7 @@ test('teacher AI output remains private until it is reviewed, approved, and expl
         ->and(Assignment::query()->count())->toBe(1)
         ->and(Assignment::query()->firstOrFail()->status)->toBe('draft');
 
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.openai.com/v1/responses'
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/chat/completions'
         && $request->hasHeader('Authorization', 'Bearer test-key'));
 });
 

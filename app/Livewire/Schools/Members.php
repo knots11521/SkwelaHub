@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Schools;
 
-use App\Actions\Schools\ReviewSchoolMembership;
+use App\Actions\Schools\CreateSchoolUser;
 use App\Models\School;
-use App\Models\SchoolMembership;
 use App\Models\User;
+use App\SchoolRole;
 use Flux\Flux;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,6 +19,14 @@ class Members extends Component
 {
     public School $school;
 
+    public string $memberName = '';
+
+    public string $memberEmail = '';
+
+    public string $memberPassword = '';
+
+    public string $memberRole = SchoolRole::Teacher->value;
+
     public function mount(School $school): void
     {
         $this->authorize('manageMemberships', $school);
@@ -25,44 +34,35 @@ class Members extends Component
         $this->school = $school;
     }
 
-    public function approve(int $membershipId): void
+    public function createMember(): void
     {
-        $membership = $this->membership($membershipId);
+        $this->authorize('manageMemberships', $this->school);
 
-        $this->authorize('approve', $membership);
+        $validated = $this->validate([
+            'memberName' => ['required', 'string', 'max:255'],
+            'memberEmail' => ['required', 'email', 'max:255', Rule::unique(User::class, 'email')],
+            'memberPassword' => ['required', 'string', 'min:8'],
+            'memberRole' => ['required', Rule::in([SchoolRole::Teacher->value, SchoolRole::Student->value, SchoolRole::ParentGuardian->value])],
+        ]);
 
-        (new ReviewSchoolMembership)->approve($this->user(), $membership);
+        (new CreateSchoolUser)->handle(
+            $this->user(),
+            $this->school,
+            SchoolRole::from($validated['memberRole']),
+            ['name' => $validated['memberName'], 'email' => $validated['memberEmail'], 'password' => $validated['memberPassword']],
+        );
 
-        Flux::toast(variant: 'success', text: 'Membership approved.');
-    }
-
-    public function reject(int $membershipId): void
-    {
-        $membership = $this->membership($membershipId);
-
-        $this->authorize('reject', $membership);
-
-        (new ReviewSchoolMembership)->reject($this->user(), $membership);
-
-        Flux::toast(variant: 'success', text: 'Membership rejected.');
+        $this->reset('memberName', 'memberEmail', 'memberPassword');
+        Flux::toast(variant: 'success', text: 'School user created and granted access.');
     }
 
     #[Computed]
-    public function memberships(): LengthAwarePaginator
+    public function members(): LengthAwarePaginator
     {
-        return SchoolMembership::query()
-            ->whereBelongsTo($this->school)
-            ->select(['id', 'school_id', 'user_id', 'requested_role', 'status', 'created_at'])
-            ->with(['school:id', 'user:id,name,email'])
+        return $this->school->users()
+            ->select(['id', 'school_id', 'name', 'email', 'role', 'created_at'])
             ->latest()
             ->paginate(20);
-    }
-
-    private function membership(int $membershipId): SchoolMembership
-    {
-        return SchoolMembership::query()
-            ->whereBelongsTo($this->school)
-            ->findOrFail($membershipId);
     }
 
     private function user(): User

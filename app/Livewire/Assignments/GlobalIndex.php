@@ -22,7 +22,7 @@ class GlobalIndex extends Component
             $query->where('user_id', $user->id)->where('status', 'approved');
         })
             ->with(['assignments' => function ($query) use ($isTeacher) {
-                $query->when(! $isTeacher, fn($q) => $q->published())->latest();
+                $query->when(! $isTeacher, fn ($q) => $q->published())->latest();
             }])
             ->get();
 

@@ -64,7 +64,7 @@ Do not claim that the content has been published, assigned, submitted, or graded
                     'stream' => false,
                 ])
                 ->throw();
-        } catch (ConnectionException | RequestException $exception) {
+        } catch (ConnectionException|RequestException $exception) {
             throw new RuntimeException(
                 'AI assistance could not be reached. Please try again.',
                 previous: $exception

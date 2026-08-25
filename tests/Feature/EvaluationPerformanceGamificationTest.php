@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\Assessments\Index as AssessmentIndex;
 use App\Livewire\Assessments\Results;
+use App\Livewire\Assessments\Take as AssessmentTake;
 use App\Livewire\Assignments\Index as AssignmentIndex;
 use App\Livewire\Assignments\Submissions;
 use App\Livewire\Performance\Index as PerformanceIndex;
@@ -85,7 +85,7 @@ test('teacher evaluation creates a derived performance record and assignment com
         ->and($this->otherTeacher->can('evaluate', $submission))->toBeFalse();
 
     $this->actingAs($this->student);
-    Livewire::test(PerformanceIndex::class)->assertSee('Academic performance')->assertSee('Engagement points');
+    Livewire::test(PerformanceIndex::class)->assertSee('Academic Performance')->assertSee('Engagement Points');
 });
 
 test('assessment completion creates a result and performance record, while evaluation remains teacher-only', function (): void {
@@ -99,9 +99,9 @@ test('assessment completion creates a result and performance record, while evalu
     $question = $assessment->questions()->create(['prompt' => 'What is -2 + 5?', 'options' => ['-7', '3'], 'correct_option' => 1]);
 
     $this->actingAs($this->student);
-    Livewire::test(AssessmentIndex::class, ['learningEnvironment' => $this->environment])
+    Livewire::test(AssessmentTake::class, ['assessment' => $assessment])
         ->set("answers.{$question->id}", 1)
-        ->call('submit', $assessment->id);
+        ->call('submit');
 
     $attempt = AssessmentAttempt::query()->firstOrFail();
     $record = PerformanceRecord::query()->firstOrFail();

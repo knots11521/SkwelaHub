@@ -5,6 +5,8 @@ namespace App\Policies;
 use App\Models\School;
 use App\Models\Subject;
 use App\Models\User;
+use App\SchoolRole;
+use Database\Seeders\RoleSeeder;
 
 class SubjectPolicy
 {
@@ -21,7 +23,9 @@ class SubjectPolicy
      */
     public function view(User $user, Subject $subject): bool
     {
-        return $user->can('view', $subject->school);
+        return $user->hasRole(RoleSeeder::SuperAdmin)
+            || ($user->school_id === $subject->school_id
+                && ($user->role === SchoolRole::SchoolAdmin || $user->role === SchoolRole::Teacher));
     }
 
     /**
@@ -29,7 +33,7 @@ class SubjectPolicy
      */
     public function create(User $user, School $school): bool
     {
-        return $user->can('manageMemberships', $school);
+        return $user->school_id === $school->id && $user->role === SchoolRole::Teacher;
     }
 
     /**
@@ -37,7 +41,7 @@ class SubjectPolicy
      */
     public function update(User $user, Subject $subject): bool
     {
-        return $user->can('manageMemberships', $subject->school);
+        return $user->id === $subject->created_by && $user->role === SchoolRole::Teacher;
     }
 
     /**
@@ -45,7 +49,7 @@ class SubjectPolicy
      */
     public function delete(User $user, Subject $subject): bool
     {
-        return $user->can('manageMemberships', $subject->school);
+        return $this->update($user, $subject);
     }
 
     /**

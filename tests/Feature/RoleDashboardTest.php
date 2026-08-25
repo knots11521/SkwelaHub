@@ -9,20 +9,24 @@ test('each seeded role can load its real dashboard', function () {
     $this->actingAs(User::query()->where('email', 'super.admin@skwelahub.test')->firstOrFail())
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Platform schools');
+        ->assertSee('Platform Schools');
 
     $this->actingAs(User::query()->where('email', 'school.admin@skwelahub.test')->firstOrFail())
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Academic structure');
+        ->assertSee('Academic Structure');
 
-    foreach (['teacher@skwelahub.test', 'student@skwelahub.test'] as $email) {
-        $this->actingAs(User::query()->where('email', $email)->firstOrFail())
-            ->get(route('dashboard'))
-            ->assertOk()
-            ->assertSee('Grade 7')
-            ->assertSee('Materials');
-    }
+    $this->actingAs(User::query()->where('email', 'teacher@skwelahub.test')->firstOrFail())
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Teaching Workspace')
+        ->assertSee('Assignments');
+
+    $this->actingAs(User::query()->where('email', 'student@skwelahub.test')->firstOrFail())
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Learning Workspace')
+        ->assertSee('Assignments');
 
     $this->actingAs(User::query()->where('email', 'parent@skwelahub.test')->firstOrFail())
         ->get(route('dashboard'))

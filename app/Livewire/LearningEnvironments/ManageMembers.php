@@ -18,7 +18,7 @@ class ManageMembers extends Component
 
     public function mount(LearningEnvironment $learningEnvironment): void
     {
-        $this->authorize('manageMemberships', $learningEnvironment->school);
+        $this->authorize('manageMembers', $learningEnvironment);
         $this->learningEnvironment = $learningEnvironment;
     }
 
@@ -26,7 +26,12 @@ class ManageMembers extends Component
     {
         $this->authorize('create', [LearningEnvironmentMembership::class, $this->learningEnvironment]);
         $data = $this->validate(['schoolMembershipId' => ['required', Rule::exists('school_memberships', 'id')]]);
-        $membership = SchoolMembership::query()->approved()->whereBelongsTo($this->learningEnvironment->school)->whereKey($data['schoolMembershipId'])->whereIn('requested_role', [SchoolRole::Teacher->value, SchoolRole::Student->value])->firstOrFail();
+        $membership = SchoolMembership::query()
+            ->approved()
+            ->whereBelongsTo($this->learningEnvironment->school)
+            ->whereKey($data['schoolMembershipId'])
+            ->where('requested_role', SchoolRole::Student->value)
+            ->firstOrFail();
         LearningEnvironmentMembership::query()->firstOrCreate(['school_membership_id' => $membership->id, 'learning_environment_id' => $this->learningEnvironment->id]);
         $this->reset('schoolMembershipId');
         Flux::toast(variant: 'success', text: 'Class membership added.');
@@ -42,6 +47,16 @@ class ManageMembers extends Component
 
     public function render()
     {
-        return view('livewire.learning-environments.manage-members', ['available' => SchoolMembership::query()->approved()->whereBelongsTo($this->learningEnvironment->school)->whereIn('requested_role', [SchoolRole::Teacher->value, SchoolRole::Student->value])->with('user:id,name,email')->get(), 'memberships' => $this->learningEnvironment->memberships()->with('schoolMembership.user:id,name,email')->get()]);
+        return view('livewire.learning-environments.manage-members', [
+            'available' => SchoolMembership::query()
+                ->approved()
+                ->whereBelongsTo($this->learningEnvironment->school)
+                ->where('requested_role', SchoolRole::Student->value)
+                ->with('user:id,name,email')
+                ->get(),
+            'memberships' => $this->learningEnvironment->memberships()
+                ->with('schoolMembership.user:id,name,email')
+                ->get(),
+        ]);
     }
 }
