@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
-use App\SchoolRole;
+use App\SchoolMembershipStatus;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\SchoolRole;
 use Database\Factories\UserFactory;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -32,12 +35,14 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['school_id', 'name', 'email', 'password', 'role'])]
+#[Fillable(['school_id', 'name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable {
+        HasRoles::assignRole as protected traitAssignRole;
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -49,8 +54,17 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => SchoolRole::class,
         ];
+    }
+
+    public function assignRole($role): static
+    {
+        if ($this->exists) {
+            $this->roles()->detach();
+            $this->unsetRelation('roles');
+        }
+
+        return $this->traitAssignRole($role);
     }
 
     /**
@@ -105,7 +119,39 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(UserAchievement::class);
     }
 
-    public function hasApprovedSchoolMembership(School $school): bool
+    public function canAccessJoinSchool(): bool
+    {
+        if ($this->hasRole(RoleSeeder::SuperAdmin)
+            || $this->hasRole(SchoolRole::SchoolAdmin->value)) {
+            return false;
+        }
+
+        if ($this->hasRole(SchoolRole::Teacher->value)) {
+            return ! $this->hasApprovedSchoolMembership();
+        }
+
+        return true;
+    }
+
+    public function hasApprovedSchoolMembership(): bool
+    {
+        if ($this->school_id !== null) {
+            return true;
+        }
+
+        return $this->schoolMemberships()
+            ->approved()
+            ->exists();
+    }
+
+    public function hasPendingSchoolMembership(): bool
+    {
+        return $this->schoolMemberships()
+            ->pending()
+            ->exists();
+    }
+
+    public function hasApprovedMembershipInSchool(School $school): bool
     {
         if ($this->school_id === $school->id) {
             return true;
@@ -119,7 +165,7 @@ class User extends Authenticatable implements PasskeyUser
 
     public function hasApprovedSchoolRole(School $school, SchoolRole $role): bool
     {
-        if ($this->school_id === $school->id && $this->role === $role && $this->hasRole($role->value)) {
+        if ($this->school_id === $school->id && $this->hasRole($role->value)) {
             return true;
         }
 
@@ -133,7 +179,7 @@ class User extends Authenticatable implements PasskeyUser
     public function hasLearningEnvironmentRole(LearningEnvironment $environment, SchoolRole $role): bool
     {
         if (($this->school_id !== null && $this->school_id !== $environment->school_id)
-            || ($this->role !== null && $this->role !== $role)) {
+            || ! $this->hasRole($role->value)) {
             return false;
         }
 
@@ -143,5 +189,48 @@ class User extends Authenticatable implements PasskeyUser
             ->where('requested_role', $role->value)
             ->whereHas('learningEnvironmentMemberships', fn ($query) => $query->whereBelongsTo($environment))
             ->exists();
+    }
+
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'parent_student', 'parent_id', 'student_id');
+    }
+
+    public function parents(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'parent_student', 'student_id', 'parent_id');
+    }
+
+    public function isParentOf(int|User $student): bool
+    {
+        $studentId = $student instanceof User ? $student->id : $student;
+
+        return $this->hasRole(SchoolRole::ParentGuardian->value)
+            && $this->students()->whereKey($studentId)->exists();
+    }
+
+    public function isParentOfChildIn(LearningEnvironment $environment): bool
+    {
+        if (! $this->hasRole(SchoolRole::ParentGuardian->value)) {
+            return false;
+        }
+
+        $childIds = $this->linkedStudentIds();
+
+        if (empty($childIds)) {
+            return false;
+        }
+
+        return $environment->memberships()
+            ->whereHas('schoolMembership', function ($q) use ($childIds) {
+                $q->where('status', SchoolMembershipStatus::Approved)
+                    ->whereIn('user_id', $childIds);
+            })
+            ->exists();
+    }
+
+    public function linkedStudentIds(): array
+    {
+        return $this->students()->pluck('users.id')->all();
     }
 }

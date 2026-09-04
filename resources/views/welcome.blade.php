@@ -92,7 +92,7 @@
 
                 @auth
 
-                    <flux:button href="{{ route(auth()->user()->role . 'dashboard') }}" variant="primary"
+                    <flux:button href="{{ route(auth()->user()->hasRole('Super Admin') ? 'super-admin.schools' : 'dashboard') }}" variant="primary"
                         class="bg-teal-700 hover:bg-teal-800 text-white font-bold">
                         Dashboard
                     </flux:button>
@@ -163,8 +163,13 @@
                                     Get Started
                                 </flux:button>
 
-                                <flux:button href="{{ route('login') }}" variant="outline" size="base"
-                                    class="border-slate-200 text-slate-700 hover:bg-teal-50 hover:text-teal-800 font-bold px-8 py-3 text-base">
+                                <flux:button href="{{ route('register.school-admin') }}" variant="outline" size="base"
+                                    class="border-teal-200 text-teal-800 hover:bg-teal-50 font-bold px-8 py-3 text-base">
+                                    Be a School Administrator
+                                </flux:button>
+
+                                <flux:button href="{{ route('login') }}" variant="ghost" size="base"
+                                    class="text-slate-700 hover:bg-slate-100 font-bold px-8 py-3 text-base">
                                     Login
                                 </flux:button>
 
@@ -172,7 +177,7 @@
 
                             @auth
 
-                                <flux:button href="{{ route(auth()->user()->role . 'dashboard') }}" variant="primary"
+                                <flux:button href="{{ route(auth()->user()->hasRole('Super Admin') ? 'super-admin.schools' : 'dashboard') }}" variant="primary"
                                     size="base"
                                     class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-8 py-3 text-base">
                                     Go to Dashboard
@@ -929,12 +934,18 @@
                                     </a>
                                 </li>
 
+                                <li>
+                                    <a href="{{ route('register.school-admin') }}" class="transition-colors hover:text-teal-400">
+                                        Register your school
+                                    </a>
+                                </li>
+
                             @endguest
 
                             @auth
 
                                 <li>
-                                    <a href="{{ route(auth()->user()->role . 'dashboard') }}"
+                                    <a href="{{ route(auth()->user()->hasRole('Super Admin') ? 'super-admin.schools' : 'dashboard') }}"
                                         class="transition-colors hover:text-teal-400">
                                         User Dashboard
                                     </a>

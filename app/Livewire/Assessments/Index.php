@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Assessments;
 
+use App\Livewire\Concerns\ManagesLearningContent;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\LearningEnvironment;
-use App\SchoolRole;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -15,6 +15,8 @@ use Livewire\Component;
 #[Title('Room Assessments')]
 class Index extends Component
 {
+    use ManagesLearningContent;
+
     public LearningEnvironment $learningEnvironment;
 
     public string $title = '';
@@ -80,11 +82,6 @@ class Index extends Component
 
         $assessment->delete();
         Flux::toast(variant: 'success', text: 'Assessment deleted.');
-    }
-
-    public function canManage(): bool
-    {
-        return Auth::user()->hasLearningEnvironmentRole($this->learningEnvironment, SchoolRole::Teacher);
     }
 
     public function render(): View

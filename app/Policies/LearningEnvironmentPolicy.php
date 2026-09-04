@@ -15,6 +15,11 @@ class LearningEnvironmentPolicy
      */
     public function viewAny(User $user): bool
     {
+        if ($user->hasRole(RoleSeeder::SuperAdmin)
+            || $user->hasRole(SchoolRole::SchoolAdmin->value)) {
+            return false;
+        }
+
         return true;
     }
 
@@ -24,9 +29,10 @@ class LearningEnvironmentPolicy
     public function view(User $user, LearningEnvironment $learningEnvironment): bool
     {
         return $user->hasRole(RoleSeeder::SuperAdmin)
-            || ($user->school_id === $learningEnvironment->school_id && $user->role === SchoolRole::SchoolAdmin)
+            || ($user->school_id === $learningEnvironment->school_id && $user->hasRole(SchoolRole::SchoolAdmin->value))
             || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher)
-            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Student);
+            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Student)
+            || $user->isParentOfChildIn($learningEnvironment);
     }
 
     /**
@@ -34,7 +40,9 @@ class LearningEnvironmentPolicy
      */
     public function create(User $user, School $school): bool
     {
-        return $user->school_id === $school->id && $user->role === SchoolRole::Teacher;
+        return $user->school_id === $school->id
+            && $user->hasRole(SchoolRole::Teacher->value)
+            && $user->hasApprovedSchoolRole($school, SchoolRole::Teacher);
     }
 
     /**
@@ -42,18 +50,21 @@ class LearningEnvironmentPolicy
      */
     public function update(User $user, LearningEnvironment $learningEnvironment): bool
     {
-        return $user->id === $learningEnvironment->created_by && $user->role === SchoolRole::Teacher;
+        return $user->id === $learningEnvironment->created_by && $user->hasRole(SchoolRole::Teacher->value);
     }
 
     public function manageMembers(User $user, LearningEnvironment $learningEnvironment): bool
     {
-        return $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher);
+        return $user->hasRole(RoleSeeder::SuperAdmin)
+            || ($user->school_id === $learningEnvironment->school_id && $user->hasRole(SchoolRole::SchoolAdmin->value))
+            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher);
     }
 
     public function viewLearningContent(User $user, LearningEnvironment $learningEnvironment): bool
     {
         return $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher)
-            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Student);
+            || $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Student)
+            || $user->isParentOfChildIn($learningEnvironment);
     }
 
     /**

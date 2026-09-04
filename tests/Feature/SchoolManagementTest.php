@@ -48,9 +48,9 @@ test('a super administrator cannot manage a school user directory', function () 
 
 test('a direct school user can view their school while another school user cannot', function () {
     $school = School::factory()->create();
-    $approvedUser = User::factory()->create(['school_id' => $school->id, 'role' => SchoolRole::Student]);
+    $approvedUser = User::factory()->create(['school_id' => $school->id]);
     $approvedUser->assignRole(SchoolRole::Student->value);
-    $otherSchoolUser = User::factory()->create(['role' => SchoolRole::Student]);
+    $otherSchoolUser = User::factory()->create();
     $otherSchoolUser->assignRole(SchoolRole::Student->value);
 
     expect($approvedUser->can('view', $school))->toBeTrue()

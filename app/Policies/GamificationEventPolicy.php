@@ -11,7 +11,8 @@ class GamificationEventPolicy
     public function view(User $user, GamificationEvent $gamificationEvent): bool
     {
         return $user->is($gamificationEvent->user)
-            || $user->hasLearningEnvironmentRole($gamificationEvent->learningEnvironment, SchoolRole::Teacher);
+            || $user->hasLearningEnvironmentRole($gamificationEvent->learningEnvironment, SchoolRole::Teacher)
+            || $user->isParentOf($gamificationEvent->user);
     }
 
     public function create(User $user): bool

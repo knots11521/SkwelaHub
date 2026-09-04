@@ -25,6 +25,7 @@ class RegisterSchoolAdmin
                 'address' => $attributes['school_address'] ?? null,
                 'region' => $attributes['school_region'] ?? null,
                 'is_active' => true,
+                'status' => 'active',
             ]);
 
             $user = User::query()->create([
@@ -32,7 +33,6 @@ class RegisterSchoolAdmin
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
                 'password' => $attributes['password'],
-                'role' => SchoolRole::SchoolAdmin,
             ]);
 
             Role::findOrCreate(SchoolRole::SchoolAdmin->value, 'web');

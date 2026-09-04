@@ -28,7 +28,7 @@ class SchoolMembershipSeeder extends Seeder
             $user = User::query()->where('email', $email)->firstOrFail();
 
             $school = School::query()->where('slug', $schoolSlug)->firstOrFail();
-            $user->update(['school_id' => $school->id, 'role' => $role]);
+            $user->update(['school_id' => $school->id]);
 
             SchoolMembership::query()->updateOrCreate(
                 ['school_id' => $school->id, 'user_id' => $user->id],

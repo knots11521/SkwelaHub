@@ -1,4 +1,47 @@
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+<x-page-section max-width="7xl" gap="10">
+
+    {{-- Join School Banner --}}
+    @if ($canJoinSchool)
+        @if ($isGuestMode)
+            <flux:card class="border-2 border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/20">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">
+                            <flux:icon icon="information-circle" class="size-5" />
+                        </div>
+                        <div>
+                            <flux:heading size="md" class="font-bold">{{ __('Welcome to SkwelaHub') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                                {{ __('Enter a school code or invitation to continue with your account.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+                    <flux:button :href="route('join-school')" wire:navigate variant="primary" icon="building-office">
+                        {{ __('Join a School') }}
+                    </flux:button>
+                </div>
+            </flux:card>
+        @else
+            <flux:card class="border border-zinc-200/80 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                            <flux:icon icon="building-office" class="size-5" />
+                        </div>
+                        <div>
+                            <flux:heading size="md" class="font-bold">{{ __('Join another classroom') }}</flux:heading>
+                            <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                                {{ __('Use an invite code or link to join a classroom within your school.') }}
+                            </flux:text>
+                        </div>
+                    </div>
+                    <flux:button :href="route('join-school')" wire:navigate variant="subtle" icon="plus">
+                        {{ __('Join a classroom') }}
+                    </flux:button>
+                </div>
+            </flux:card>
+        @endif
+    @endif
 
     {{-- Hero Welcome Banner --}}
     <div
@@ -253,34 +296,6 @@
         </section>
     @endif
 
-    @if ($isTeacher || $isStudent)
-        <section class="space-y-4">
-            <div class="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
-                <flux:heading size="lg" class="font-bold tracking-tight">{{ __('My Classrooms') }}</flux:heading>
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                @forelse ($environments as $environment)
-                    <flux:card wire:key="dashboard-environment-{{ $environment->id }}" class="flex flex-col gap-4 border border-zinc-200/80 dark:border-zinc-800">
-                        <div>
-                            <flux:heading>{{ $environment->name }}{{ $environment->section ? ' · '.$environment->section : '' }}</flux:heading>
-                            <flux:text>{{ $environment->subject->name }} · {{ $environment->school->name }}</flux:text>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <flux:button :href="route('learning-environments.materials', $environment)" wire:navigate size="sm" icon="book-open">{{ __('Materials') }}</flux:button>
-                            <flux:button :href="route('learning-environments.assignments', $environment)" wire:navigate size="sm" icon="clipboard-document-list">{{ __('Assignments') }}</flux:button>
-                            <flux:button :href="route('learning-environments.assessments', $environment)" wire:navigate size="sm" icon="academic-cap">{{ __('Assessments') }}</flux:button>
-                        </div>
-                    </flux:card>
-                @empty
-                    <flux:callout icon="information-circle" variant="secondary" class="sm:col-span-2 lg:col-span-3">
-                        {{ __('No classrooms are assigned to you yet.') }}
-                    </flux:callout>
-                @endforelse
-            </div>
-        </section>
-    @endif
-
     {{-- Parent / Guardian Section --}}
     @if ($isParent)
         <section>
@@ -301,14 +316,7 @@
                 <flux:text class="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                     {{ __('Student linking and guardian progress visibility are not implemented yet. This dashboard intentionally does not expose any student data until that relationship exists.') }}
                 </flux:text>
-
-                <div class="pt-2">
-                    <flux:button :href="route('schools.index')" wire:navigate size="sm" variant="subtle"
-                        icon="arrow-right">
-                        {{ __('View School Access') }}
-                    </flux:button>
-                </div>
             </flux:card>
         </section>
     @endif
-</div>
+</x-page-section>

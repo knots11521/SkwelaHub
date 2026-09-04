@@ -9,6 +9,7 @@
 
     @php
         $user = auth()->user();
+        $isGuestMode = $user && ! $user->hasApprovedSchoolMembership();
 
         $workspace = match (true) {
             $user->hasRole(\Database\Seeders\RoleSeeder::SuperAdmin) => __('Platform'),
@@ -49,16 +50,23 @@
                 {{ __('Dashboard') }}
             </flux:sidebar.item>
 
-            @if ($user->school_id && $user->hasRole(\App\SchoolRole::SchoolAdmin->value))
+            @if ($user->canAccessJoinSchool())
+                <flux:sidebar.item icon="building-office" :href="route('join-school')" :current="request()->routeIs('join-school')"
+                    wire:navigate>
+                    {{ __('Join School') }}
+                </flux:sidebar.item>
+            @endif
+
+            @if (! $isGuestMode && $user->school_id && $user->hasRole(\App\SchoolRole::SchoolAdmin->value))
                 <flux:sidebar.item icon="users" :href="route('schools.members', $user->school_id)" :current="request()->routeIs('schools.members')" wire:navigate>{{ __('School users') }}</flux:sidebar.item>
             @endif
 
-            @if ($user->school_id && ($user->hasRole(\App\SchoolRole::SchoolAdmin->value) || $user->hasRole(\App\SchoolRole::Teacher->value)))
-                <flux:sidebar.item icon="academic-cap" :href="route('schools.academic', $user->school_id)" :current="request()->routeIs('schools.academic')" wire:navigate>{{ $user->hasRole(\App\SchoolRole::Teacher->value) ? __('My subjects and classrooms') : __('Academic supervision') }}</flux:sidebar.item>
+            @if (! $isGuestMode && $user->school_id && $user->hasRole(\App\SchoolRole::SchoolAdmin->value))
+                <flux:sidebar.item icon="academic-cap" :href="route('schools.academic', $user->school_id)" :current="request()->routeIs('schools.academic')" wire:navigate>{{ __('Academic supervision') }}</flux:sidebar.item>
             @endif
 
             {{-- Learning Hub (Dropdown for Teachers & Students) --}}
-            @if ($user->hasRole(\App\SchoolRole::Teacher->value) || $user->hasRole(\App\SchoolRole::Student->value))
+            @if (! $isGuestMode && ($user->hasRole(\App\SchoolRole::Teacher->value) || $user->hasRole(\App\SchoolRole::Student->value) || $user->hasRole(\App\SchoolRole::ParentGuardian->value)))
                 <flux:sidebar.group expandable icon="academic-cap" :heading="__('Learning Hub')"
                     :open="request()->routeIs(['learning-environments.*', 'assessments.*', 'assignments.*', 'materials.*', 'performance.*'])">
 
@@ -87,7 +95,7 @@
                     </flux:sidebar.item>
 
                     {{-- Student Performance Link --}}
-                    @if ($user->hasRole(\App\SchoolRole::Student->value))
+                    @if ($user->hasRole(\App\SchoolRole::Student->value) || $user->hasRole(\App\SchoolRole::ParentGuardian->value))
                         <flux:sidebar.item icon="chart-bar" :href="route('performance.index')"
                             :current="request()->routeIs('performance.*')" wire:navigate>
                             {{ __('My performance') }}

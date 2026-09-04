@@ -12,7 +12,8 @@ class AssessmentAttemptPolicy
     public function view(User $user, AssessmentAttempt $assessmentAttempt): bool
     {
         return $user->is($assessmentAttempt->student)
-            || $user->hasLearningEnvironmentRole($assessmentAttempt->learningEnvironment, SchoolRole::Teacher);
+            || $user->hasLearningEnvironmentRole($assessmentAttempt->learningEnvironment, SchoolRole::Teacher)
+            || $user->isParentOf($assessmentAttempt->student);
     }
 
     public function create(User $user, Assessment $assessment): bool

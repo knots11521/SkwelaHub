@@ -2,10 +2,9 @@
 
 namespace App\Livewire\LearningMaterials;
 
+use App\Livewire\Concerns\ManagesLearningContent;
 use App\Models\LearningEnvironment;
 use App\Models\LearningMaterial;
-use App\SchoolRole;
-use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
@@ -15,6 +14,7 @@ use Livewire\WithFileUploads;
 #[Title('Learning materials')]
 class Index extends Component
 {
+    use ManagesLearningContent;
     use WithFileUploads;
 
     public LearningEnvironment $learningEnvironment;
@@ -50,11 +50,6 @@ class Index extends Component
         $this->authorize('delete', $material);
         $material->delete();
         Flux::toast(text: 'Material removed.');
-    }
-
-    public function canManage(): bool
-    {
-        return Auth::user()->hasLearningEnvironmentRole($this->learningEnvironment, SchoolRole::Teacher);
     }
 
     public function render()

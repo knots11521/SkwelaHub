@@ -49,6 +49,12 @@ class SchoolMembership extends Model
         return $query->where('status', SchoolMembershipStatus::Approved);
     }
 
+    #[Scope]
+    protected function pending(Builder $query): Builder
+    {
+        return $query->where('status', SchoolMembershipStatus::Pending);
+    }
+
     protected function casts(): array
     {
         return [

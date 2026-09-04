@@ -18,46 +18,14 @@ class DatabaseSeeder extends Seeder
         $this->call([RoleSeeder::class, AchievementSeeder::class]);
 
         $users = [
-            [
-                'name' => 'Super Administrator',
-                'email' => 'super.admin@skwelahub.test',
-                'role' => RoleSeeder::SuperAdmin,
-            ],
-            [
-                'name' => 'School Administrator',
-                'email' => 'school.admin@skwelahub.test',
-                'role' => RoleSeeder::SchoolAdmin,
-            ],
-            [
-                'name' => 'Teacher User',
-                'email' => 'teacher@skwelahub.test',
-                'role' => RoleSeeder::Teacher,
-            ],
-            [
-                'name' => 'Student User',
-                'email' => 'student@skwelahub.test',
-                'role' => RoleSeeder::Student,
-            ],
-            [
-                'name' => 'Parent Guardian',
-                'email' => 'parent@skwelahub.test',
-                'role' => RoleSeeder::ParentGuardian,
-            ],
-            [
-                'name' => 'North Campus Teacher',
-                'email' => 'north.teacher@skwelahub.test',
-                'role' => RoleSeeder::Teacher,
-            ],
-            [
-                'name' => 'North Campus Administrator',
-                'email' => 'north.admin@skwelahub.test',
-                'role' => RoleSeeder::SchoolAdmin,
-            ],
-            [
-                'name' => 'North Campus Student',
-                'email' => 'north.student@skwelahub.test',
-                'role' => RoleSeeder::Student,
-            ],
+            ['name' => 'Super Administrator', 'email' => 'super.admin@skwelahub.test', 'role' => RoleSeeder::SuperAdmin],
+            ['name' => 'School Administrator', 'email' => 'school.admin@skwelahub.test', 'role' => RoleSeeder::SchoolAdmin],
+            ['name' => 'Teacher User', 'email' => 'teacher@skwelahub.test', 'role' => RoleSeeder::Teacher],
+            ['name' => 'Student User', 'email' => 'student@skwelahub.test', 'role' => RoleSeeder::Student],
+            ['name' => 'Parent Guardian', 'email' => 'parent@skwelahub.test', 'role' => RoleSeeder::ParentGuardian],
+            ['name' => 'North Campus Teacher', 'email' => 'north.teacher@skwelahub.test', 'role' => RoleSeeder::Teacher],
+            ['name' => 'North Campus Administrator', 'email' => 'north.admin@skwelahub.test', 'role' => RoleSeeder::SchoolAdmin],
+            ['name' => 'North Campus Student', 'email' => 'north.student@skwelahub.test', 'role' => RoleSeeder::Student],
         ];
 
         foreach ($users as $attributes) {

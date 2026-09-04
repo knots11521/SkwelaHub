@@ -1,4 +1,4 @@
-<section class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+<x-page-section>
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
             <flux:heading size="xl">{{ $learningEnvironment->name }}</flux:heading>
@@ -124,4 +124,4 @@
             </table>
         </div>
     </flux:card>
-</section>
+</x-page-section>

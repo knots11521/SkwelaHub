@@ -25,7 +25,7 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     $school = School::factory()->create();
-    $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Mathematics', 'code' => 'MATH-7']);
+    $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Mathematics']);
     $this->environment = LearningEnvironment::query()->create(['school_id' => $school->id, 'subject_id' => $subject->id, 'name' => 'Grade 7', 'section' => 'A']);
     $this->otherEnvironment = LearningEnvironment::query()->create(['school_id' => $school->id, 'subject_id' => $subject->id, 'name' => 'Grade 7', 'section' => 'B']);
 

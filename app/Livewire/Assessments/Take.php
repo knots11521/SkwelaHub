@@ -24,10 +24,6 @@ class Take extends Component
     {
         $this->assessment = $assessment->load('questions');
         $this->authorize('create', [AssessmentAttempt::class, $this->assessment]);
-
-        if ($this->assessment->attempts()->whereBelongsTo(Auth::user(), 'student')->exists()) {
-            $this->redirect(route('learning-environments.assessments', $this->assessment->learning_environment_id), navigate: true);
-        }
     }
 
     public function submit(): void
@@ -48,10 +44,14 @@ class Take extends Component
         }
 
         $attempt = DB::transaction(function () use ($correctAnswers): AssessmentAttempt {
+            $nextAttempt = $this->assessment->attempts()
+                ->whereBelongsTo(Auth::user(), 'student')
+                ->max('attempt') + 1;
+
             $attempt = $this->assessment->attempts()->create([
                 'learning_environment_id' => $this->assessment->learning_environment_id,
                 'student_id' => Auth::id(),
-                'attempt' => 1,
+                'attempt' => $nextAttempt,
                 'score' => round(($correctAnswers / $this->assessment->questions->count()) * 100, 2),
                 'submitted_at' => now(),
                 'result_available_at' => now(),

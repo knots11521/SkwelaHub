@@ -13,7 +13,7 @@ class Subject extends Model
     /** @use HasFactory<SubjectFactory> */
     use HasFactory;
 
-    protected $fillable = ['school_id', 'created_by', 'name', 'code', 'description'];
+    protected $fillable = ['school_id', 'created_by', 'name', 'description'];
 
     public function school(): BelongsTo
     {

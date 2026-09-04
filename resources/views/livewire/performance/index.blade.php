@@ -1,4 +1,4 @@
-<div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<x-page-section max-width="6xl" gap="8">
 
     {{-- Page Header --}}
     <div class="pb-6 border-b border-zinc-200 dark:border-zinc-800 space-y-1">
@@ -205,8 +205,6 @@
                 </div>
             @endif
 
-        </div>
+     </div>
 
-    </div>
-
-</div>
+</x-page-section>

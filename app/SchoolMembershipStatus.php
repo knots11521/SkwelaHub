@@ -9,4 +9,15 @@ enum SchoolMembershipStatus: string
     case Rejected = 'rejected';
     case Suspended = 'suspended';
     case Removed = 'removed';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Pending => __('Pending'),
+            self::Approved => __('Approved'),
+            self::Rejected => __('Rejected'),
+            self::Suspended => __('Suspended'),
+            self::Removed => __('Removed'),
+        };
+    }
 }

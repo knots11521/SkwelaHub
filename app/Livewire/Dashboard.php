@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ResolvesTeacherEnvironments;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\Assignment;
@@ -21,6 +22,8 @@ use Livewire\Component;
 #[Title('Dashboard')]
 class Dashboard extends Component
 {
+    use ResolvesTeacherEnvironments;
+
     public function render(): View
     {
         /** @var User $user */
@@ -30,19 +33,16 @@ class Dashboard extends Component
         $isTeacher = $user->hasRole(SchoolRole::Teacher->value);
         $isStudent = $user->hasRole(SchoolRole::Student->value);
         $isParent = $user->hasRole(SchoolRole::ParentGuardian->value);
+        $isGuestMode = ! $user->hasApprovedSchoolMembership();
+        $canJoinSchool = $user->canAccessJoinSchool();
 
         $schools = School::query()->active()->select(['id', 'name', 'slug'])->latest()->get();
 
-        // Environment IDs retrieved specifically for stats calculation without fetching models for rendering
-        $environmentIds = LearningEnvironment::query()
-            ->whereHas('memberships.schoolMembership', function ($query) use ($user) {
-                $query->whereBelongsTo($user)->approved();
-            })
-            ->pluck('id');
+        $environmentIds = $this->getAccessibleEnvironmentIds();
 
         $environments = LearningEnvironment::query()
             ->whereKey($environmentIds)
-            ->with(['school:id,name', 'subject:id,name,code'])
+            ->with(['school:id,name', 'subject:id,name'])
             ->orderBy('name')
             ->get();
 
@@ -59,12 +59,14 @@ class Dashboard extends Component
             'isTeacher' => $isTeacher,
             'isStudent' => $isStudent,
             'isParent' => $isParent,
+            'isGuestMode' => $isGuestMode,
+            'canJoinSchool' => $canJoinSchool,
             'platformStats' => [
                 'schools' => $isSuperAdmin ? $schools->count() : 0,
                 'users' => $isSuperAdmin ? User::query()->count() : 0,
             ],
             'schoolAdministrators' => $isSuperAdmin
-                ? User::query()->where('role', SchoolRole::SchoolAdmin)->with('school:id,name')->orderBy('name')->get(['id', 'school_id', 'name', 'email'])
+                ? User::query()->whereHas('roles', fn ($q) => $q->where('name', SchoolRole::SchoolAdmin->value))->with('school:id,name')->orderBy('name')->get(['id', 'school_id', 'name', 'email'])
                 : collect(),
             'schoolStats' => [
                 'members' => $isSchoolAdmin ? SchoolMembership::query()->approved()->whereIn('school_id', $adminSchoolIds)->count() : 0,

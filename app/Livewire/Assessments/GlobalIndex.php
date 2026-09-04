@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Assessments;
 
+use App\Livewire\Concerns\ResolvesTeacherEnvironments;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
-use App\Models\LearningEnvironment;
+use App\Models\User;
 use App\SchoolRole;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -14,26 +15,48 @@ use Livewire\Component;
 #[Title('My Assessments')]
 class GlobalIndex extends Component
 {
+    use ResolvesTeacherEnvironments;
+
+    public function mount(): void
+    {
+        $this->authorize('viewAny', Assessment::class);
+    }
+
     public function render(): View
     {
+        /** @var User $user */
         $user = Auth::user();
 
-        $environmentIds = LearningEnvironment::whereHas('memberships.schoolMembership', function ($query) use ($user) {
-            $query->where('user_id', $user->id)->where('status', 'approved');
-        })->pluck('id');
-
         $isTeacher = $user->hasRole(SchoolRole::Teacher->value);
+        $isParent = $user->hasRole(SchoolRole::ParentGuardian->value);
 
-        $assessments = Assessment::query()
-            ->whereIn('learning_environment_id', $environmentIds)
+        $environmentIds = $this->getAccessibleEnvironmentIds();
+
+        $query = Assessment::query()
             ->with(['author:id,name', 'learningEnvironment:id,name'])
             ->withCount(['attempts', 'questions'])
-            ->when(! $isTeacher, fn ($query) => $query->where('status', 'published'))
-            ->latest()
-            ->paginate(10);
+            ->latest();
+
+        if ($isParent) {
+            $childIds = $user->students()->pluck('users.id')->all();
+            $attemptedAssessmentIds = AssessmentAttempt::query()
+                ->whereIn('student_id', $childIds)
+                ->pluck('assessment_id')
+                ->all();
+
+            $query->where(function ($q) use ($environmentIds, $attemptedAssessmentIds) {
+                $q->whereIn('id', $attemptedAssessmentIds)
+                    ->orWhereIn('learning_environment_id', $environmentIds);
+            })->where('status', 'published');
+        } else {
+            $query->whereIn('learning_environment_id', $environmentIds)
+                ->when(! $isTeacher, fn ($q) => $q->where('status', 'published'));
+        }
+
+        $assessments = $query->paginate(10);
 
         $attempts = AssessmentAttempt::query()
-            ->where('student_id', $user->id)
+            ->whereIn('student_id', $isParent ? $user->students()->pluck('users.id')->all() : [$user->id])
             ->whereIn('assessment_id', $assessments->pluck('id'))
             ->get()
             ->keyBy('assessment_id');

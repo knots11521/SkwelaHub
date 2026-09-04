@@ -16,11 +16,11 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     $this->school = School::factory()->create();
-    $subject = Subject::query()->create(['school_id' => $this->school->id, 'name' => 'Math', 'code' => 'MATH-7']);
+    $subject = Subject::query()->create(['school_id' => $this->school->id, 'name' => 'Math']);
     $this->environment = LearningEnvironment::query()->create(['school_id' => $this->school->id, 'subject_id' => $subject->id, 'name' => 'Grade 7', 'section' => 'A']);
     $this->otherEnvironment = LearningEnvironment::query()->create(['school_id' => $this->school->id, 'subject_id' => $subject->id, 'name' => 'Grade 7', 'section' => 'B']);
 
-    $this->teacher = User::factory()->create();
+    $this->teacher = User::factory()->create(['school_id' => $this->school->id]);
     $this->teacher->assignRole(SchoolRole::Teacher->value);
     $teacherMembership = SchoolMembership::factory()->approved()->create(['school_id' => $this->school->id, 'user_id' => $this->teacher->id, 'requested_role' => SchoolRole::Teacher]);
     LearningEnvironmentMembership::query()->create(['school_membership_id' => $teacherMembership->id, 'learning_environment_id' => $this->environment->id]);

@@ -1,4 +1,4 @@
-<section class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+<x-page-section>
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div><flux:heading size="xl">{{ $assignment->title }}</flux:heading><flux:text>{{ __('Student submissions') }}</flux:text></div>
         <flux:button :href="route('learning-environments.assignments', $assignment->learningEnvironment)" wire:navigate>{{ __('Back to assignments') }}</flux:button>
@@ -19,4 +19,4 @@
             <flux:card><flux:text>{{ __('No work has been submitted yet.') }}</flux:text></flux:card>
         @endforelse
     </div>
-</section>
+</x-page-section>

@@ -1,4 +1,4 @@
-<section class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+<x-page-section>
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div><flux:heading size="xl">{{ $learningEnvironment->name }}</flux:heading><flux:text>{{ __('Teacher AI assistant') }}</flux:text></div>
         <div class="flex gap-2"><flux:button :href="route('learning-environments.assignments', $learningEnvironment)" wire:navigate>{{ __('Assignments') }}</flux:button><flux:button :href="route('learning-environments.assessments', $learningEnvironment)" wire:navigate>{{ __('Assessments') }}</flux:button></div>
@@ -32,4 +32,4 @@
             <flux:card><flux:text>{{ __('No AI suggestions have been requested for this environment.') }}</flux:text></flux:card>
         @endforelse
     </div>
-</section>
+</x-page-section>

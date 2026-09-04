@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
+use App\Actions\Fortify\LoginResponse;
+use App\Actions\Fortify\RegisterResponse;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -18,7 +20,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->instance(\Laravel\Fortify\Contracts\RegisterResponse::class, new RegisterResponse);
+        $this->app->instance(\Laravel\Fortify\Contracts\LoginResponse::class, new LoginResponse);
     }
 
     /**

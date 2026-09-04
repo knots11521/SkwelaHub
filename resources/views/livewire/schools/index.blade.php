@@ -1,4 +1,4 @@
-<section class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+<x-page-section max-width="6xl">
     <div class="space-y-1">
         <div class="flex items-center gap-2"><flux:icon.building-office class="size-6 text-teal-600 dark:text-teal-400" /><flux:heading size="xl">{{ __('School directory') }}</flux:heading></div>
         <flux:text>{{ __('Each school is created and managed by its first School Admin during registration.') }}</flux:text>
@@ -21,4 +21,4 @@
     </div>
 
     {{ $this->schools->links() }}
-</section>
+</x-page-section>

@@ -13,7 +13,7 @@ use Database\Seeders\RoleSeeder;
 beforeEach(fn () => $this->seed(RoleSeeder::class));
 test('only members of an environment can view its materials', function () {
     $school = School::factory()->create();
-    $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Math', 'code' => 'M1']);
+    $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Math']);
     $environment = LearningEnvironment::query()->create(['school_id' => $school->id, 'subject_id' => $subject->id, 'name' => 'Seven']);
     $teacher = User::factory()->create();
     $teacher->assignRole(SchoolRole::Teacher->value);

@@ -14,7 +14,11 @@ class LearningMaterialPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasAnyRole([
+            SchoolRole::Teacher->value,
+            SchoolRole::Student->value,
+            SchoolRole::ParentGuardian->value,
+        ]);
     }
 
     /**
@@ -30,7 +34,8 @@ class LearningMaterialPolicy
      */
     public function create(User $user, LearningEnvironment $learningEnvironment): bool
     {
-        return $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher);
+        return $user->school_id === $learningEnvironment->school_id
+            && $user->hasLearningEnvironmentRole($learningEnvironment, SchoolRole::Teacher);
     }
 
     /**
@@ -38,7 +43,9 @@ class LearningMaterialPolicy
      */
     public function update(User $user, LearningMaterial $learningMaterial): bool
     {
-        return $user->is($learningMaterial->author) && $user->hasLearningEnvironmentRole($learningMaterial->learningEnvironment, SchoolRole::Teacher);
+        return $user->is($learningMaterial->author)
+            && $user->school_id === $learningMaterial->learningEnvironment->school_id
+            && $user->hasLearningEnvironmentRole($learningMaterial->learningEnvironment, SchoolRole::Teacher);
     }
 
     /**

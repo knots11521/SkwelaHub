@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'slug', 'description', 'address', 'region', 'is_active', 'created_by'])]
+#[Fillable(['name', 'slug', 'description', 'address', 'region', 'is_active', 'status', 'created_by', 'reviewed'])]
 class School extends Model
 {
     /** @use HasFactory<SchoolFactory> */
@@ -31,6 +31,14 @@ class School extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(SchoolMembership::class);
+    }
+
+    /**
+     * @return HasMany<SchoolMembership, $this>
+     */
+    public function approvedMemberships(): HasMany
+    {
+        return $this->hasMany(SchoolMembership::class)->approved();
     }
 
     /**
@@ -56,6 +64,18 @@ class School extends Model
     #[Scope]
     protected function active(Builder $query): Builder
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', true)->where('status', 'active');
+    }
+
+    #[Scope]
+    protected function reviewed(Builder $query): Builder
+    {
+        return $query->where('reviewed', true);
+    }
+
+    #[Scope]
+    protected function unreviewed(Builder $query): Builder
+    {
+        return $query->where('reviewed', false);
     }
 }

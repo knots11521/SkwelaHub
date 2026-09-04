@@ -3,11 +3,11 @@
 namespace App\Livewire\Assignments;
 
 use App\Actions\Gamification\AwardGamification;
+use App\Livewire\Concerns\ManagesLearningContent;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\LearningEnvironment;
 use App\Models\User;
-use App\SchoolRole;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -17,6 +17,8 @@ use Livewire\Component;
 #[Title('Assignments')]
 class Index extends Component
 {
+    use ManagesLearningContent;
+
     public LearningEnvironment $learningEnvironment;
 
     public string $title = '';
@@ -93,11 +95,6 @@ class Index extends Component
 
         unset($this->submissionContents[$assignment->id]);
         Flux::toast(variant: 'success', text: 'Work submitted.');
-    }
-
-    public function canManage(): bool
-    {
-        return Auth::user()->hasLearningEnvironmentRole($this->learningEnvironment, SchoolRole::Teacher);
     }
 
     public function render(): View

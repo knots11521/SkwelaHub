@@ -21,7 +21,6 @@ class SubjectFactory extends Factory
         return [
             'school_id' => School::factory(),
             'name' => fake()->words(2, true),
-            'code' => strtoupper(fake()->unique()->bothify('???-##')),
         ];
     }
 }

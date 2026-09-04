@@ -3,6 +3,7 @@
 namespace App\Livewire\Assessments;
 
 use App\Actions\Performance\RecordPerformance;
+use App\Livewire\Concerns\ManagesLearningContent;
 use App\Models\Assessment;
 use App\SchoolRole;
 use Flux\Flux;
@@ -14,6 +15,8 @@ use Livewire\Component;
 #[Title('Assessment results')]
 class Results extends Component
 {
+    use ManagesLearningContent;
+
     public Assessment $assessment;
 
     /** @var array<int, string> */
@@ -25,7 +28,7 @@ class Results extends Component
     public function mount(Assessment $assessment): void
     {
         $this->authorize('viewResults', $assessment);
-        $this->assessment = $assessment;
+        $this->assessment = $assessment->load('attempts');
 
         // Only populate form evaluation arrays if the user is a teacher
         if ($this->canManage()) {
@@ -79,7 +82,11 @@ class Results extends Component
         $studentAttempt = $this->assessment->attempts()
             ->where('student_id', Auth::id())
             ->with(['responses.assessmentQuestion', 'evaluator:id,name'])
-            ->firstOrFail();
+            ->first();
+
+        if ($studentAttempt === null) {
+            return view('livewire.assessments.student-empty');
+        }
 
         return view('livewire.assessments.student-result', [
             'attempt' => $studentAttempt,

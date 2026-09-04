@@ -12,7 +12,8 @@ class AssignmentSubmissionPolicy
     public function view(User $user, AssignmentSubmission $assignmentSubmission): bool
     {
         return $user->is($assignmentSubmission->student)
-            || $user->hasLearningEnvironmentRole($assignmentSubmission->learningEnvironment, SchoolRole::Teacher);
+            || $user->hasLearningEnvironmentRole($assignmentSubmission->learningEnvironment, SchoolRole::Teacher)
+            || $user->isParentOf($assignmentSubmission->student);
     }
 
     public function create(User $user, Assignment $assignment): bool

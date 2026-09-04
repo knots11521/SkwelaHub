@@ -1,4 +1,4 @@
-<section class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6">
+<x-page-section max-width="4xl">
     <div>
         <flux:heading size="xl">{{ $learningEnvironment->name }}</flux:heading>
         <flux:text>{{ __('Learning materials') }}</flux:text>
@@ -49,4 +49,4 @@
             </flux:card>
         @endforelse
     </div>
-</section>
+</x-page-section>

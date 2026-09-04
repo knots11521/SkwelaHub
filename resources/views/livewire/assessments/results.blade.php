@@ -1,4 +1,4 @@
-<section class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+<x-page-section>
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><flux:heading size="xl">{{ $assessment->title }}</flux:heading><flux:text>{{ __('Assessment results') }}</flux:text></div><flux:button :href="route('learning-environments.assessments', $assessment->learningEnvironment)" wire:navigate>{{ __('Back to assessments') }}</flux:button></div>
     <flux:card><flux:heading>{{ __('Completed attempts: :count', ['count' => $attempts->count()]) }}</flux:heading><flux:text>{{ __('Average score: :score%', ['score' => number_format((float) $attempts->avg('score'), 2)]) }}</flux:text></flux:card>
     <div class="flex flex-col gap-4">
@@ -16,4 +16,4 @@
             <flux:card><flux:text>{{ __('No student has completed this assessment yet.') }}</flux:text></flux:card>
         @endforelse
     </div>
-</section>
+</x-page-section>

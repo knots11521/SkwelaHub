@@ -13,7 +13,7 @@ beforeEach(fn () => $this->seed(RoleSeeder::class));
 
 test('school membership alone does not grant learning environment access', function () {
     $school = School::factory()->create();
-    $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Math', 'code' => 'M1']);
+    $subject = Subject::query()->create(['school_id' => $school->id, 'name' => 'Math']);
     $environment = LearningEnvironment::query()->create(['school_id' => $school->id, 'subject_id' => $subject->id, 'name' => 'Grade 7']);
     $teacher = User::factory()->create();
     $teacher->assignRole(SchoolRole::Teacher->value);

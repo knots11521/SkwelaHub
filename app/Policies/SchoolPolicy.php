@@ -54,4 +54,10 @@ class SchoolPolicy
     {
         return $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin);
     }
+
+    public function manageSchoolUsers(User $user, School $school): bool
+    {
+        return $user->hasApprovedSchoolRole($school, SchoolRole::SchoolAdmin)
+            || $user->hasApprovedSchoolRole($school, SchoolRole::Teacher);
+    }
 }

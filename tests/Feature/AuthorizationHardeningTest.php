@@ -13,7 +13,7 @@ use Database\Seeders\DatabaseSeeder;
 beforeEach(function (): void {
     $this->seed(DatabaseSeeder::class);
     $this->foreignSchool = School::factory()->create(['name' => 'Private Foreign School']);
-    $subject = Subject::query()->create(['school_id' => $this->foreignSchool->id, 'name' => 'Private Mathematics', 'code' => 'PRIVATE-MATH']);
+    $subject = Subject::query()->create(['school_id' => $this->foreignSchool->id, 'name' => 'Private Mathematics']);
     $this->foreignEnvironment = LearningEnvironment::query()->create(['school_id' => $this->foreignSchool->id, 'subject_id' => $subject->id, 'name' => 'Private Class', 'section' => 'A']);
     $this->foreignAuthor = User::factory()->create();
     $this->assignment = Assignment::query()->create(['learning_environment_id' => $this->foreignEnvironment->id, 'created_by' => $this->foreignAuthor->id, 'title' => 'Private assignment', 'status' => 'published', 'published_at' => now()]);

@@ -25,7 +25,7 @@ class SubjectPolicy
     {
         return $user->hasRole(RoleSeeder::SuperAdmin)
             || ($user->school_id === $subject->school_id
-                && ($user->role === SchoolRole::SchoolAdmin || $user->role === SchoolRole::Teacher));
+                && ($user->hasRole(SchoolRole::SchoolAdmin->value) || $user->hasRole(SchoolRole::Teacher->value)));
     }
 
     /**
@@ -33,7 +33,7 @@ class SubjectPolicy
      */
     public function create(User $user, School $school): bool
     {
-        return $user->school_id === $school->id && $user->role === SchoolRole::Teacher;
+        return $user->school_id === $school->id && $user->hasRole(SchoolRole::Teacher->value);
     }
 
     /**
@@ -41,7 +41,7 @@ class SubjectPolicy
      */
     public function update(User $user, Subject $subject): bool
     {
-        return $user->id === $subject->created_by && $user->role === SchoolRole::Teacher;
+        return $user->id === $subject->created_by && $user->hasRole(SchoolRole::Teacher->value);
     }
 
     /**

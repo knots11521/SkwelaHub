@@ -61,6 +61,20 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+/*
+ * Modal backdrop blur — mobile-first.
+ * All Flux modals get a subtle blur; enhanced on tablet/desktop.
+ */
+[data-flux-modal] > dialog[open]::backdrop {
+    @apply backdrop-blur-sm;
+}
+
+@media (min-width: 640px) {
+    [data-flux-modal] > dialog[open]::backdrop {
+        @apply backdrop-blur-md;
+    }
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
