@@ -10,6 +10,7 @@
 .env
 .env.backup
 .env.production
+.env.testing
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -22,3 +23,19 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Local tooling directories (not shared)
+/.agents/
+/.ai/
+/.codex/
+/.kilo/
+
+# Duplicate/copy files (IDE-generated)
+* copy.php
+
+# Root-level reference text files
+/*.txt
+
+# OS file caches
+.DS_Store
+Thumbs.db
